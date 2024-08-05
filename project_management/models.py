@@ -1,5 +1,6 @@
 from django.db import models
 from accounts.models import User
+from django.utils import timezone
 
 class Project(models.Model):
     name = models.CharField(max_length=100)
@@ -36,10 +37,13 @@ class Issue(models.Model):
     labels = models.ManyToManyField('Label', blank=True)
     assignee = models.ForeignKey(User, related_name='assigned_issues', on_delete=models.SET_NULL, null=True, blank=True)
     reporter = models.ForeignKey(User, related_name='reported_issues', on_delete=models.SET_NULL, null=True, blank=True)
-    startDate = models.DateField(blank=True, null=True)
-    endDate = models.DateField(blank=True, null=True)
-    count = models.IntegerField(default=0)
+    startDate = models.DateTimeField(default=timezone.now)
     imageIds = models.JSONField(default=list)
+
+    def save(self, *args, **kwargs):
+        if not self.startDate:
+            self.startDate = timezone.now()
+        super().save(*args, **kwargs)
 
 class Label(models.Model):
     name = models.CharField(max_length=50)
